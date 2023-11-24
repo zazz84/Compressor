@@ -117,6 +117,33 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+#ifdef DEBUG
+	float getCrestFactorSQ()
+	{ 
+		const float tmp = m_crestFactorSQ;
+		m_crestFactorSQ = 0.0f;
+		return tmp;
+	}
+	float getGainReduction()
+	{
+		const float tmp = m_gainReductiondB;
+		m_gainReductiondB = 0.0f;
+		return tmp;
+	}
+	float getAttackTime()
+	{
+		const float tmp = m_attackTime;
+		m_attackTime = 0.0f;
+		return tmp;
+	}
+	float getReleaseTime()
+	{
+		const float tmp = m_releaseTime;
+		m_releaseTime = 0.0f;
+		return tmp;
+	}
+#endif
+
 	using APVTS = juce::AudioProcessorValueTreeState;
 	static APVTS::ParameterLayout createParameterLayout();
 
@@ -138,6 +165,13 @@ private:
 
 	EnvelopeFollower m_envelopeFollower[2] = {};
 	CrestFactor m_crestFactor[2] = {};
+
+#ifdef DEBUG
+	float m_attackTime = 0.0f;
+	float m_releaseTime = 0.0f;
+	float m_crestFactorSQ = 0.0f;
+	float m_gainReductiondB = 0.0f;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorAudioProcessor)
 };

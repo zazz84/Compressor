@@ -266,6 +266,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				//Get gain reduction, positive values
 				const float attenuatedB = (smoothdB >= threshold) ? (smoothdB - threshold) * R_Inv_minus_One : 0.0f;
 
+#ifdef DEBUG
+				// Store gain reduction
+				if (fabs(attenuatedB) > m_gainReductiondB)
+					m_gainReductiondB = fabs(attenuatedB);
+#endif
+
 				// Apply gain reduction
 				const float out = in * juce::Decibels::decibelsToGain(attenuatedB);
 
@@ -294,6 +300,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				//Get gain reduction, positive values
 				const float attenuatedB = (smoothdB >= threshold) ? (smoothdB - threshold) * R_Inv_minus_One : 0.0f;
 
+#ifdef DEBUG
+				// Store gain reduction
+				if (fabs(attenuatedB) > m_gainReductiondB)
+					m_gainReductiondB = fabs(attenuatedB);
+#endif
+
 				// Apply gain reduction
 				const float out = in * juce::Decibels::decibelsToGain(attenuatedB);
 
@@ -320,7 +332,7 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				if (automation == automation::Auto)
 				{
 					const float crest = crestFactor.process(in);
-					const float crestSQ = crest * crest;
+					const float crestSQ  = crest * crest;
 
 					const float attackAuto = 4.0f * attack / crestSQ;
 					float releaseAuto = 4.0f * release / crestSQ - attackAuto;
@@ -328,10 +340,28 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 						releaseAuto = 1.0f;
 
 					envelopeFollower.setCoef(attackAuto, releaseAuto);
+
+#ifdef DEBUG
+					// Values for meters
+					if (attackAuto > m_attackTime)
+						m_attackTime = attackAuto;
+
+					if (releaseAuto > m_releaseTime)
+						m_releaseTime = releaseAuto;
+
+					if (crestSQ > m_crestFactorSQ)
+						m_crestFactorSQ = crestSQ;
+#endif
 				}
 
 				// Smooth
 				const float smoothdB = factor * envelopeFollower.process(attenuatedB);
+
+#ifdef DEBUG
+				// Store gain reduction
+				if (fabs(smoothdB) > m_gainReductiondB)
+					m_gainReductiondB = fabs(smoothdB);
+#endif
 
 				// Apply gain reduction
 				const float out = in * juce::Decibels::decibelsToGain(smoothdB);

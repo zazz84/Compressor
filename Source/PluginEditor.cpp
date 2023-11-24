@@ -42,6 +42,29 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioP
 	detectionTypeLabel.setJustificationType(juce::Justification::centred);
 	addAndMakeVisible(detectionTypeLabel);
 
+#if DEBUG
+	//Debug
+	crestFactorLabel.setText("0", juce::dontSendNotification);
+	crestFactorLabel.setFont(juce::Font(24.0f * 0.01f * SCALE, juce::Font::bold));
+	crestFactorLabel.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(crestFactorLabel);
+
+	gainReductionLabel.setText("0", juce::dontSendNotification);
+	gainReductionLabel.setFont(juce::Font(24.0f * 0.01f * SCALE, juce::Font::bold));
+	gainReductionLabel.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(gainReductionLabel);
+
+	attackTimeLabel.setText("0", juce::dontSendNotification);
+	attackTimeLabel.setFont(juce::Font(24.0f * 0.01f * SCALE, juce::Font::bold));
+	attackTimeLabel.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(attackTimeLabel);
+
+	releaseTimeLabel.setText("0", juce::dontSendNotification);
+	releaseTimeLabel.setFont(juce::Font(24.0f * 0.01f * SCALE, juce::Font::bold));
+	releaseTimeLabel.setJustificationType(juce::Justification::centred);
+	addAndMakeVisible(releaseTimeLabel);
+#endif
+
 	// Menus
 	automationComboBox.addItem("Manual", CompressorAudioProcessor::automation::Manual);
 	automationComboBox.addItem("Auto", CompressorAudioProcessor::automation::Auto);
@@ -69,7 +92,13 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioP
 
 	bool hasMenu = (N_MENUS_COUNT > 0) ? true : false;
 
+#if DEBUG
+	setSize((int)(200.0f * 0.01f * SCALE * N_SLIDERS_COUNT), (int)(200.0f * 0.01f * SCALE) + (hasMenu * MENU_HEIGHT) + MENU_HEIGHT);
+
+	startTimerHz(5);
+#else
 	setSize((int)(200.0f * 0.01f * SCALE * N_SLIDERS_COUNT), (int)(200.0f * 0.01f * SCALE) + (hasMenu * MENU_HEIGHT));
+#endif
 }
 
 CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
@@ -77,6 +106,25 @@ CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
 }
 
 //==============================================================================
+#ifdef DEBUG
+void CompressorAudioProcessorEditor::timerCallback()
+{
+	const int attackTime = (int)audioProcessor.getAttackTime();
+	attackTimeLabel.setText(juce::String(attackTime), juce::dontSendNotification);
+
+	const int releaseTime = (int)audioProcessor.getReleaseTime();
+	releaseTimeLabel.setText(juce::String(releaseTime), juce::dontSendNotification);
+
+	const int crestFactorSQ = (int)audioProcessor.getCrestFactorSQ();
+	crestFactorLabel.setText(juce::String(crestFactorSQ), juce::dontSendNotification);
+
+	const int gainReduction = (int)audioProcessor.getGainReduction();
+	gainReductionLabel.setText(juce::String(gainReduction), juce::dontSendNotification);
+	
+	repaint();
+}
+#endif
+
 void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 {
 	g.fillAll(juce::Colours::darkslategrey);
@@ -85,7 +133,15 @@ void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 void CompressorAudioProcessorEditor::resized()
 {
 	int width = getWidth() / N_SLIDERS_COUNT;
-	int height = getHeight() - MENU_HEIGHT;
+
+	bool hasMenu = (N_MENUS_COUNT > 0) ? true : false;
+#if DEBUG
+	int height = getHeight() - hasMenu * MENU_HEIGHT - MENU_HEIGHT;
+#else
+	int height = getHeight() - hasMenu * MENU_HEIGHT;
+#endif
+
+	
 
 	// Sliders + Menus
 	juce::Rectangle<int> rectangles[N_SLIDERS_COUNT];
@@ -103,26 +159,60 @@ void CompressorAudioProcessorEditor::resized()
 
 	// Menus
 	juce::Rectangle<int> menuRectangle;
-	const int menuHeight = (int)(height + MENU_HEIGHT * 0.3f);
+	const int menuPosY = (int)(height + MENU_HEIGHT * 0.3f);
+	const int menuWidth = (int)(width * 0.9f);
 	
+	menuRectangle.setSize(menuWidth, (int)(MENU_HEIGHT * 0.4f));
+
+	//1
+	menuRectangle.setPosition((int)(0.05f * width), menuPosY);
+
+
 	//2
-	menuRectangle.setSize((int)(width * 0.9f), (int)(MENU_HEIGHT * 0.4f));
-	menuRectangle.setPosition((int)(1.05f * width), menuHeight);
-	//smoothingTypeLabel.setBounds(menuRectangle);
-	automationComboBox.setBounds(menuRectangle);
-	automationComboBox.setJustificationType(juce::Justification::centred);
+	menuRectangle.setPosition((int)(1.05f * width), menuPosY);
+
 
 	//3
-	menuRectangle.setPosition((int)(2.05f * width), menuHeight);
-	ballisticTypeComboBox.setBounds(menuRectangle);
-	ballisticTypeComboBox.setJustificationType(juce::Justification::centred);
+	menuRectangle.setPosition((int)(2.05f * width), menuPosY);
+	automationComboBox.setBounds(menuRectangle);
 
 	//4
-	menuRectangle.setPosition((int)(3.05f * width), menuHeight);
-	detectionTypeLabel.setBounds(menuRectangle);
+	menuRectangle.setPosition((int)(3.05f * width), menuPosY);
+	ballisticTypeComboBox.setBounds(menuRectangle);
 
 	//5
-	menuRectangle.setPosition((int)(4.05f * width), menuHeight);
+	menuRectangle.setPosition((int)(4.05f * width), menuPosY);
 	architectureComboBox.setBounds(menuRectangle);
-	architectureComboBox.setJustificationType(juce::Justification::centred);
+
+	//6
+	menuRectangle.setPosition((int)(5.05f * width), menuPosY);
+	
+
+#if DEBUG
+	// Debug menus
+
+	juce::Rectangle<int> debugMenuRectangle;
+	const int debugMenuPosY = (int)(height + MENU_HEIGHT * 1.3f);
+	debugMenuRectangle.setSize(menuWidth, (int)(MENU_HEIGHT * 0.4f));
+
+	//1
+	debugMenuRectangle.setPosition((int)(0.05f * width), debugMenuPosY);
+	attackTimeLabel.setBounds(debugMenuRectangle);
+
+	//2
+	debugMenuRectangle.setPosition((int)(1.05f * width), debugMenuPosY);
+	releaseTimeLabel.setBounds(debugMenuRectangle);
+
+	//3
+	debugMenuRectangle.setPosition((int)(2.05f * width), debugMenuPosY);
+	crestFactorLabel.setBounds(debugMenuRectangle);
+
+	//4
+	debugMenuRectangle.setPosition((int)(3.05f * width), debugMenuPosY);
+	gainReductionLabel.setBounds(debugMenuRectangle);
+
+	//5
+
+	//6
+#endif
 }

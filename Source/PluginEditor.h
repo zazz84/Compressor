@@ -12,7 +12,11 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-class CompressorAudioProcessorEditor  : public juce::AudioProcessorEditor
+#if DEBUG
+class CompressorAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
+#else
+class CompressorAudioProcessorEditor : public juce::AudioProcessorEditor
+#endif
 {
 public:
     CompressorAudioProcessorEditor (CompressorAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -26,7 +30,10 @@ public:
 	static const int MENU_HEIGHT = 60;
 
     //==============================================================================
-    void paint (juce::Graphics&) override;
+#ifdef DEBUG
+	void timerCallback() override;
+#endif
+	void paint (juce::Graphics&) override;
     void resized() override;
 
 	typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
@@ -55,6 +62,13 @@ private:
 	juce::Label automationTLabel;
 	juce::Label smoothingTypeLabel;
 	juce::Label detectionTypeLabel;
+
+#ifdef DEBUG
+	juce::Label crestFactorLabel;
+	juce::Label gainReductionLabel;
+	juce::Label attackTimeLabel;
+	juce::Label releaseTimeLabel;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorAudioProcessorEditor)
 };
