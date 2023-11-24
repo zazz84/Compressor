@@ -115,7 +115,7 @@ void CompressorAudioProcessorEditor::timerCallback()
 	const int releaseTime = (int)audioProcessor.getReleaseTime();
 	releaseTimeLabel.setText(juce::String(releaseTime), juce::dontSendNotification);
 
-	const int crestFactorSQ = (int)audioProcessor.getCrestFactorSQ();
+	const int crestFactorSQ = (int)audioProcessor.getCrestFactor();
 	crestFactorLabel.setText(juce::String(crestFactorSQ), juce::dontSendNotification);
 
 	const int gainReduction = (int)audioProcessor.getGainReduction();

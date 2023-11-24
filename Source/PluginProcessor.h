@@ -118,10 +118,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 #ifdef DEBUG
-	float getCrestFactorSQ()
+	float getCrestFactor()
 	{ 
-		const float tmp = m_crestFactorSQ;
-		m_crestFactorSQ = 0.0f;
+		const float tmp = m_crestFactorPercentage;
+		m_crestFactorPercentage = 0.0f;
 		return tmp;
 	}
 	float getGainReduction()
@@ -169,7 +169,7 @@ private:
 #ifdef DEBUG
 	float m_attackTime = 0.0f;
 	float m_releaseTime = 0.0f;
-	float m_crestFactorSQ = 0.0f;
+	float m_crestFactorPercentage = 0.0f;
 	float m_gainReductiondB = 0.0f;
 #endif
 

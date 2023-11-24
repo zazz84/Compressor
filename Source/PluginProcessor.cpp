@@ -332,12 +332,16 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				if (automation == automation::Auto)
 				{
 					const float crest = crestFactor.process(in);
-					const float crestSQ  = crest * crest;
+					const float crestSQ = crest * crest;
+					const float crestFactor = 1.0f - std::min(crestSQ / 40.0f, 1.0f);
 
-					const float attackAuto = 4.0f * attack / crestSQ;
-					float releaseAuto = 4.0f * release / crestSQ - attackAuto;
-					if (releaseAuto <= 1.0f)
-						releaseAuto = 1.0f;
+					float attackAuto = attack * crestFactor;
+					if (attackAuto <= 0.1f)
+						attackAuto = 0.1f;
+
+					float releaseAuto = release * crestFactor;
+					if (releaseAuto <= 30.0f)
+						releaseAuto = 30.0f;
 
 					envelopeFollower.setCoef(attackAuto, releaseAuto);
 
@@ -349,8 +353,8 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 					if (releaseAuto > m_releaseTime)
 						m_releaseTime = releaseAuto;
 
-					if (crestSQ > m_crestFactorSQ)
-						m_crestFactorSQ = crestSQ;
+					if (crestFactor * 100.0f > m_crestFactorPercentage)
+						m_crestFactorPercentage = crestFactor * 100.0f;
 #endif
 				}
 
