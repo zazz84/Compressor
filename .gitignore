@@ -229,3 +229,5 @@ JuceLibraryCode/include_juce_gui_extra.mm
 JuceLibraryCode/JuceHeader.h
 JuceLibraryCode/JucePluginDefines.h
 JuceLibraryCode/ReadMe.txt
+Builds/VisualStudio2017/.vs/Compressor/v15/ipch/AutoPCH/1c3712615ce465ba/JUCE_AUDIO_DEVICES.ipch
+Builds/VisualStudio2017/.vs/Compressor/v15/ipch/AutoPCH/4166771b665b5db1/JUCE_AUDIO_FORMATS.ipch
