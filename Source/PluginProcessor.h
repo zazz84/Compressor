@@ -117,6 +117,8 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+	void timesAutomation(float in, CrestFactor& crestFactor, EnvelopeFollower& envelopeFollower, float attack, float release);
+
 #ifdef DEBUG
 	float getCrestFactor()
 	{ 

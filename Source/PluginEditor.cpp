@@ -212,6 +212,7 @@ void CompressorAudioProcessorEditor::resized()
 	gainReductionLabel.setBounds(debugMenuRectangle);
 
 	//5
+	debugMenuRectangle.setPosition((int)(4.05f * width), debugMenuPosY);
 
 	//6
 #endif

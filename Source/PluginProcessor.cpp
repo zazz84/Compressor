@@ -230,8 +230,8 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 	const float mixInverse = 1.0f - mix;
 	const float R_Inv_minus_One = (1.0f / ratio) - 1.0f;
 	const int channels = getTotalNumOutputChannels();
-	const int samples = buffer.getNumSamples();	
-	
+	const int samples = buffer.getNumSamples();		
+
 	for (int channel = 0; channel < channels; ++channel)
 	{
 		// Channel pointer
@@ -256,6 +256,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 			{
 				// Get input
 				const float in = channelBuffer[sample];
+
+				//Automation
+				if (automation == automation::Auto)
+				{
+					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
+				}
 
 				// Smooth
 				const float smooth = envelopeFollower.process(in);
@@ -290,6 +296,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
 				// In above threshold
 				const float inOverThrehold = fmaxf(thresholdGain, in);
+
+				//Automation
+				if (automation == automation::Auto)
+				{
+					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
+				}
 
 				// Smooth
 				const float smooth = envelopeFollower.process(inOverThrehold);
@@ -331,31 +343,7 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				//Automation
 				if (automation == automation::Auto)
 				{
-					const float crest = crestFactor.process(in);
-					const float crestSQ = crest * crest;
-					const float crestFactor = 1.0f - std::min(crestSQ / 40.0f, 1.0f);
-
-					float attackAuto = attack * crestFactor;
-					if (attackAuto <= 0.1f)
-						attackAuto = 0.1f;
-
-					float releaseAuto = release * crestFactor;
-					if (releaseAuto <= 30.0f)
-						releaseAuto = 30.0f;
-
-					envelopeFollower.setCoef(attackAuto, releaseAuto);
-
-#ifdef DEBUG
-					// Values for meters
-					if (attackAuto > m_attackTime)
-						m_attackTime = attackAuto;
-
-					if (releaseAuto > m_releaseTime)
-						m_releaseTime = releaseAuto;
-
-					if (crestFactor * 100.0f > m_crestFactorPercentage)
-						m_crestFactorPercentage = crestFactor * 100.0f;
-#endif
+					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
 				}
 
 				// Smooth
@@ -375,6 +363,36 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 			}
 		}
 	}
+}
+
+//==============================================================================
+void CompressorAudioProcessor::timesAutomation(float in, CrestFactor& crestFactor, EnvelopeFollower& envelopeFollower, float attack, float release)
+{
+	const float crest = crestFactor.process(in);
+	const float crestSQ = crest * crest;
+	const float crestMultiplier = 1.0f - std::min(crestSQ / 40.0f, 1.0f);
+
+	float attackAuto = attack * crestMultiplier;
+	if (attackAuto <= 0.1f)
+		attackAuto = 0.1f;
+
+	float releaseAuto = release * crestMultiplier;
+	if (releaseAuto <= 30.0f)
+		releaseAuto = 30.0f;
+
+	envelopeFollower.setCoef(attackAuto, releaseAuto);
+
+#ifdef DEBUG
+	// Values for meters
+	if (attackAuto > m_attackTime)
+		m_attackTime = attackAuto;
+
+	if (releaseAuto > m_releaseTime)
+		m_releaseTime = releaseAuto;
+
+	if (crestMultiplier * 100.0f > m_crestFactorPercentage)
+		m_crestFactorPercentage = crestMultiplier * 100.0f;
+#endif
 }
 
 //==============================================================================
