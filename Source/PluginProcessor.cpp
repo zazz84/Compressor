@@ -91,16 +91,17 @@ CompressorAudioProcessor::CompressorAudioProcessor()
                        )
 #endif
 {
-	automationParameter    = static_cast<juce::AudioParameterChoice*>(apvts.getParameter("automation"));
-	ballisticTypeParameter = static_cast<juce::AudioParameterChoice*>(apvts.getParameter("ballisticType"));
-	architectureParameter  = static_cast<juce::AudioParameterChoice*>(apvts.getParameter("architecture"));
-
 	attackParameter    = apvts.getRawParameterValue(paramsNames[0]);
 	releaseParameter   = apvts.getRawParameterValue(paramsNames[1]);
 	ratioParameter     = apvts.getRawParameterValue(paramsNames[2]);
 	thresholdParameter = apvts.getRawParameterValue(paramsNames[3]);
 	mixParameter       = apvts.getRawParameterValue(paramsNames[4]);
 	volumeParameter    = apvts.getRawParameterValue(paramsNames[5]);
+
+	buttonAParameter = static_cast<juce::AudioParameterBool*>(apvts.getParameter("ButtonA"));
+	buttonBParameter = static_cast<juce::AudioParameterBool*>(apvts.getParameter("ButtonB"));
+	buttonCParameter = static_cast<juce::AudioParameterBool*>(apvts.getParameter("ButtonC"));
+	buttonDParameter = static_cast<juce::AudioParameterBool*>(apvts.getParameter("ButtonD"));
 }
 
 CompressorAudioProcessor::~CompressorAudioProcessor()
@@ -216,15 +217,39 @@ bool CompressorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 	// Get params
-	const CompressorAudioProcessor::automation automation = static_cast<CompressorAudioProcessor::automation>(automationParameter->getIndex() + 1);
-	const EnvelopeFollower::ballisticType ballisticType = static_cast<EnvelopeFollower::ballisticType>(ballisticTypeParameter->getIndex() + 1);
-	const CompressorAudioProcessor::architecture architecture = static_cast<CompressorAudioProcessor::architecture>(architectureParameter->getIndex() + 1);
 	const auto attack = attackParameter->load();
 	const auto release = releaseParameter->load();
 	const auto ratio = ratioParameter->load();
 	const auto threshold = thresholdParameter->load();
 	const auto mix = mixParameter->load();
 	const auto volume = juce::Decibels::decibelsToGain(volumeParameter->load());
+
+	// Buttons
+	const auto buttonA = buttonAParameter->get();
+	const auto buttonB = buttonBParameter->get();
+	const auto buttonC = buttonCParameter->get();
+	const auto buttonD = buttonDParameter->get();
+
+	CompressorAudioProcessor::architecture architecture = architecture::LogDomain;
+	EnvelopeFollower::ballisticType ballisticType = EnvelopeFollower::ballisticType::SmoothDecoupled;
+
+	if (buttonB)
+	{
+		architecture = architecture::LogDomain;
+		ballisticType = EnvelopeFollower::ballisticType::SmoothBranching;
+	}
+
+	if (buttonC)
+	{
+		architecture = architecture::ReturnToZero;
+		ballisticType = EnvelopeFollower::ballisticType::SmoothDecoupled;
+	}
+
+	if (buttonD)
+	{
+		architecture = architecture::ReturnToZero;
+		ballisticType = EnvelopeFollower::ballisticType::SmoothBranching;
+	}
 
 	// Mics constants
 	const float mixInverse = 1.0f - mix;
@@ -258,10 +283,10 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				const float in = channelBuffer[sample];
 
 				//Automation
-				if (automation == automation::Auto)
+				/*if (automation == automation::Auto)
 				{
 					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
-				}
+				}*/
 
 				// Smooth
 				const float smooth = envelopeFollower.process(in);
@@ -298,10 +323,10 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				const float inOverThrehold = fmaxf(thresholdGain, in);
 
 				//Automation
-				if (automation == automation::Auto)
+				/*if (automation == automation::Auto)
 				{
 					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
-				}
+				}*/
 
 				// Smooth
 				const float smooth = envelopeFollower.process(inOverThrehold);
@@ -341,10 +366,10 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 				const float attenuatedB = (indB >= threshold) ? (indB - threshold) * R_Inv_minus_One : 0.0f;
 
 				//Automation
-				if (automation == automation::Auto)
+				/*if (automation == automation::Auto)
 				{
 					timesAutomation(in, crestFactor, envelopeFollower, attack, release);
-				}
+				}*/
 
 				// Smooth
 				const float smoothdB = factor * envelopeFollower.process(attenuatedB);
@@ -429,16 +454,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
 
 	using namespace juce;
 
-	layout.add(std::make_unique<juce::AudioParameterChoice>("automation",    "Automation",     juce::StringArray{ "Manual", "Auto" }, 0));
-	layout.add(std::make_unique<juce::AudioParameterChoice>("ballisticType", "BallisticType",  juce::StringArray{ "Decoupled", "Branching", "SmoothDecoupled", "SmoothBranching" }, 3));
-	layout.add(std::make_unique<juce::AudioParameterChoice>("architecture",  "Architecture",   juce::StringArray{ "ReturnToZero", "ReturnToThreshold", "LogDomain" }, 2));
-
 	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[0], paramsNames[0], NormalisableRange<float>(  0.1f,  80.0f,  0.1f, 0.5f),  10.0f));
-	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[1], paramsNames[1], NormalisableRange<float>(  1.0f, 200.0f,  1.0f, 0.5f), 100.0f));
-	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[2], paramsNames[2], NormalisableRange<float>(  0.5f,   8.0f,  0.1f, 1.0f),   4.0f));
+	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[1], paramsNames[1], NormalisableRange<float>(  1.0f, 200.0f,  0.1f, 0.5f), 100.0f));
+	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[2], paramsNames[2], NormalisableRange<float>(  0.6f,   8.0f, 0.01f, 0.4f),   4.0f));
 	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[3], paramsNames[3], NormalisableRange<float>(-60.0f,  12.0f,  1.0f, 1.0f), -12.0f));
 	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[4], paramsNames[4], NormalisableRange<float>(  0.0f,   1.0f, 0.05f, 1.0f),   1.0f));
 	layout.add(std::make_unique<juce::AudioParameterFloat>(paramsNames[5], paramsNames[5], NormalisableRange<float>(-24.0f,  24.0f,  0.1f, 1.0f),   0.0f));
+
+	layout.add(std::make_unique<juce::AudioParameterBool>("ButtonA", "ButtonA", true));
+	layout.add(std::make_unique<juce::AudioParameterBool>("ButtonB", "ButtonB", false));
+	layout.add(std::make_unique<juce::AudioParameterBool>("ButtonC", "ButtonC", false));
+	layout.add(std::make_unique<juce::AudioParameterBool>("ButtonD", "ButtonD", false));
 
 	return layout;
 }

@@ -154,16 +154,17 @@ public:
 private:	
 	//==============================================================================
 
-	juce::AudioParameterChoice* automationParameter = nullptr;
-	juce::AudioParameterChoice* ballisticTypeParameter = nullptr;
-	juce::AudioParameterChoice* architectureParameter = nullptr;
-
 	std::atomic<float>* attackParameter = nullptr;
 	std::atomic<float>* releaseParameter = nullptr;
 	std::atomic<float>* ratioParameter = nullptr;
 	std::atomic<float>* thresholdParameter = nullptr;
 	std::atomic<float>* mixParameter = nullptr;
 	std::atomic<float>* volumeParameter = nullptr;
+
+	juce::AudioParameterBool* buttonAParameter = nullptr;
+	juce::AudioParameterBool* buttonBParameter = nullptr;
+	juce::AudioParameterBool* buttonCParameter = nullptr;
+	juce::AudioParameterBool* buttonDParameter = nullptr;
 
 	EnvelopeFollower m_envelopeFollower[2] = {};
 	CrestFactor m_crestFactor[2] = {};

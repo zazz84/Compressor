@@ -13,6 +13,14 @@
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (&p), audioProcessor (p), valueTreeState(vts)
 {
+	juce::Colour light  = juce::Colour::fromHSV(0.8f, 0.5f, 0.6f, 1.0f);
+	juce::Colour medium = juce::Colour::fromHSV(0.8f, 0.5f, 0.5f, 1.0f);
+	juce::Colour dark   = juce::Colour::fromHSV(0.8f, 0.5f, 0.4f, 1.0f);
+
+	getLookAndFeel().setColour(juce::Slider::thumbColourId, dark);
+	getLookAndFeel().setColour(juce::Slider::rotarySliderFillColourId, medium);
+	getLookAndFeel().setColour(juce::Slider::rotarySliderOutlineColourId, light);
+
 	for (int i = 0; i < N_SLIDERS_COUNT; i++)
 	{
 		auto& label = m_labels[i];
@@ -65,39 +73,43 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioP
 	addAndMakeVisible(releaseTimeLabel);
 #endif
 
-	// Menus
-	automationComboBox.addItem("Manual", CompressorAudioProcessor::automation::Manual);
-	automationComboBox.addItem("Auto", CompressorAudioProcessor::automation::Auto);
-	automationComboBox.setSelectedId(CompressorAudioProcessor::automation::Manual);
-	automationComboBox.setJustificationType(juce::Justification::centred);
-	addAndMakeVisible(automationComboBox);
-	automationComboBoxAttachment.reset(new ComboBoxAttachment(valueTreeState, "automation", automationComboBox));
+	// Buttons
+	addAndMakeVisible(typeAButton);
+	addAndMakeVisible(typeBButton);
+	addAndMakeVisible(typeCButton);
+	addAndMakeVisible(typeDButton);
 
-	ballisticTypeComboBox.addItem("Decoupled", EnvelopeFollower::ballisticType::Decoupled);
-	ballisticTypeComboBox.addItem("Branching", EnvelopeFollower::ballisticType::Branching);
-	ballisticTypeComboBox.addItem("SmoothDecoupled", EnvelopeFollower::ballisticType::SmoothDecoupled);
-	ballisticTypeComboBox.addItem("SmoothBranching", EnvelopeFollower::ballisticType::SmoothBranching);
-	ballisticTypeComboBox.setSelectedId(EnvelopeFollower::ballisticType::SmoothBranching);
-	ballisticTypeComboBox.setJustificationType(juce::Justification::centred);
-	addAndMakeVisible(ballisticTypeComboBox);
-	ballisticTypeComboBoxAttachment.reset(new ComboBoxAttachment(valueTreeState, "ballisticType", ballisticTypeComboBox));
+	typeAButton.setRadioGroupId(TYPE_BUTTON_GROUP);
+	typeBButton.setRadioGroupId(TYPE_BUTTON_GROUP);
+	typeCButton.setRadioGroupId(TYPE_BUTTON_GROUP);
+	typeDButton.setRadioGroupId(TYPE_BUTTON_GROUP);
 
-	architectureComboBox.addItem("ReturnToZero", CompressorAudioProcessor::architecture::ReturnToZero);
-	architectureComboBox.addItem("ReturnToThreshold", CompressorAudioProcessor::architecture::ReturnToThreshold);
-	architectureComboBox.addItem("LogDomain", CompressorAudioProcessor::architecture::LogDomain);
-	architectureComboBox.setSelectedId(CompressorAudioProcessor::architecture::LogDomain);
-	architectureComboBox.setJustificationType(juce::Justification::centred);
-	addAndMakeVisible(architectureComboBox);
-	architectureTypeComboBoxAttachment.reset(new ComboBoxAttachment(valueTreeState, "architecture", architectureComboBox));
+	typeAButton.setClickingTogglesState(true);
+	typeBButton.setClickingTogglesState(true);
+	typeCButton.setClickingTogglesState(true);
+	typeDButton.setClickingTogglesState(true);
 
-	bool hasMenu = (N_MENUS_COUNT > 0) ? true : false;
+	buttonAAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(valueTreeState, "ButtonA", typeAButton));
+	buttonBAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(valueTreeState, "ButtonB", typeBButton));
+	buttonCAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(valueTreeState, "ButtonC", typeCButton));
+	buttonDAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(valueTreeState, "ButtonD", typeDButton));
+
+	typeAButton.setColour(juce::TextButton::buttonColourId, light);
+	typeBButton.setColour(juce::TextButton::buttonColourId, light);
+	typeCButton.setColour(juce::TextButton::buttonColourId, light);
+	typeDButton.setColour(juce::TextButton::buttonColourId, light);
+
+	typeAButton.setColour(juce::TextButton::buttonOnColourId, dark);
+	typeBButton.setColour(juce::TextButton::buttonOnColourId, dark);
+	typeCButton.setColour(juce::TextButton::buttonOnColourId, dark);
+	typeDButton.setColour(juce::TextButton::buttonOnColourId, dark);
 
 #if DEBUG
-	setSize((int)(200.0f * 0.01f * SCALE * N_SLIDERS_COUNT), (int)(200.0f * 0.01f * SCALE) + (hasMenu * MENU_HEIGHT) + MENU_HEIGHT);
+	setSize((int)(SLIDER_WIDTH * 0.01f * SCALE * N_SLIDERS_COUNT), (int)((SLIDER_WIDTH + BOTTOM_MENU_HEIGHT + BOTTOM_MENU_HEIGHT) * 0.01f * SCALE));
 
 	startTimerHz(5);
 #else
-	setSize((int)(200.0f * 0.01f * SCALE * N_SLIDERS_COUNT), (int)(200.0f * 0.01f * SCALE) + (hasMenu * MENU_HEIGHT));
+	setSize((int)(SLIDER_WIDTH * 0.01f * SCALE * N_SLIDERS_COUNT), (int)((SLIDER_WIDTH + BOTTOM_MENU_HEIGHT) * 0.01f * SCALE));
 #endif
 }
 
@@ -127,73 +139,42 @@ void CompressorAudioProcessorEditor::timerCallback()
 
 void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 {
-	g.fillAll(juce::Colours::darkslategrey);
+	g.fillAll(juce::Colour::fromHSV(0.8f, 0.5f, 0.7f, 1.0f));
 }
 
 void CompressorAudioProcessorEditor::resized()
 {
 	int width = getWidth() / N_SLIDERS_COUNT;
-
-	bool hasMenu = (N_MENUS_COUNT > 0) ? true : false;
-#if DEBUG
-	int height = getHeight() - hasMenu * MENU_HEIGHT - MENU_HEIGHT;
-#else
-	int height = getHeight() - hasMenu * MENU_HEIGHT;
-#endif
-
-	
+	int height = SLIDER_WIDTH * 0.01f * SCALE;
 
 	// Sliders + Menus
 	juce::Rectangle<int> rectangles[N_SLIDERS_COUNT];
 
-	//for (int i = (automationComboBox.getSelectedId() == (int)(CompressorAudioProcessor::automation::Auto)) ? 2 : 0; i < N_SLIDERS_COUNT; ++i)
 	for (int i = 0; i < N_SLIDERS_COUNT; ++i)
 	{
 		rectangles[i].setSize(width, height);
 		rectangles[i].setPosition(i * width, 0);
 		m_sliders[i].setBounds(rectangles[i]);
 
-		rectangles[i].removeFromBottom((int)(20.0f * 0.01f * SCALE));
+		rectangles[i].removeFromBottom((int)(LABEL_OFFSET * 0.01f * SCALE));
 		m_labels[i].setBounds(rectangles[i]);
 	}
 
-	// Menus
-	juce::Rectangle<int> menuRectangle;
-	const int menuPosY = (int)(height + MENU_HEIGHT * 0.3f);
-	const int menuWidth = (int)(width * 0.9f);
-	
-	menuRectangle.setSize(menuWidth, (int)(MENU_HEIGHT * 0.4f));
+	// Buttons
+	const int posY = height + (int)(BOTTOM_MENU_HEIGHT * 0.01f * SCALE * 0.25f);
+	const int buttonHeight = (int)(BOTTOM_MENU_HEIGHT * 0.01f * SCALE * 0.5f);
 
-	//1
-	menuRectangle.setPosition((int)(0.05f * width), menuPosY);
-
-
-	//2
-	menuRectangle.setPosition((int)(1.05f * width), menuPosY);
-
-
-	//3
-	menuRectangle.setPosition((int)(2.05f * width), menuPosY);
-	automationComboBox.setBounds(menuRectangle);
-
-	//4
-	menuRectangle.setPosition((int)(3.05f * width), menuPosY);
-	ballisticTypeComboBox.setBounds(menuRectangle);
-
-	//5
-	menuRectangle.setPosition((int)(4.05f * width), menuPosY);
-	architectureComboBox.setBounds(menuRectangle);
-
-	//6
-	menuRectangle.setPosition((int)(5.05f * width), menuPosY);
-	
+	typeAButton.setBounds((int)(getWidth() * 0.5f - buttonHeight * 1.8f), posY, buttonHeight, buttonHeight);
+	typeBButton.setBounds((int)(getWidth() * 0.5f - buttonHeight * 0.6f), posY, buttonHeight, buttonHeight);
+	typeCButton.setBounds((int)(getWidth() * 0.5f + buttonHeight * 0.6f), posY, buttonHeight, buttonHeight);
+	typeDButton.setBounds((int)(getWidth() * 0.5f + buttonHeight * 1.8f), posY, buttonHeight, buttonHeight);	
 
 #if DEBUG
 	// Debug menus
-
+	const int menuWidth = (int)(width * 0.9f);
 	juce::Rectangle<int> debugMenuRectangle;
-	const int debugMenuPosY = (int)(height + MENU_HEIGHT * 1.3f);
-	debugMenuRectangle.setSize(menuWidth, (int)(MENU_HEIGHT * 0.4f));
+	const int debugMenuPosY = (int)(height + BOTTOM_MENU_HEIGHT * 1.3f);
+	debugMenuRectangle.setSize(menuWidth, (int)(BOTTOM_MENU_HEIGHT * 0.4f));
 
 	//1
 	debugMenuRectangle.setPosition((int)(0.05f * width), debugMenuPosY);

@@ -231,3 +231,7 @@ JuceLibraryCode/JucePluginDefines.h
 JuceLibraryCode/ReadMe.txt
 Builds/VisualStudio2017/.vs/Compressor/v15/ipch/AutoPCH/1c3712615ce465ba/JUCE_AUDIO_DEVICES.ipch
 Builds/VisualStudio2017/.vs/Compressor/v15/ipch/AutoPCH/4166771b665b5db1/JUCE_AUDIO_FORMATS.ipch
+Builds/VisualStudio2017/x64/Debug/VST3/Compressor.Build.CppClean.log
+Builds/VisualStudio2017/x64/Debug/VST3 Manifest Helper/juce_vst3_helper.Build.CppClean.log
+Builds/VisualStudio2017/x64/Debug/Standalone Plugin/Compressor.Build.CppClean.log
+Builds/VisualStudio2017/x64/Debug/Shared Code/Compressor.Build.CppClean.log
