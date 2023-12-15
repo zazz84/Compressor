@@ -27,6 +27,7 @@ public:
 	static const int SCALE = 70;
 	static const int LABEL_OFFSET = 25;
 	static const int SLIDER_WIDTH = 200;
+	static const int HUE = 80;
 
 	static const int TYPE_BUTTON_GROUP = 1;
 	static const int BOTTOM_MENU_HEIGHT = 50;

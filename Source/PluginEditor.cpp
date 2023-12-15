@@ -13,9 +13,9 @@
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (&p), audioProcessor (p), valueTreeState(vts)
 {
-	juce::Colour light  = juce::Colour::fromHSV(0.8f, 0.5f, 0.6f, 1.0f);
-	juce::Colour medium = juce::Colour::fromHSV(0.8f, 0.5f, 0.5f, 1.0f);
-	juce::Colour dark   = juce::Colour::fromHSV(0.8f, 0.5f, 0.4f, 1.0f);
+	juce::Colour light = juce::Colour::fromHSV(HUE * 0.01f, 0.5f, 0.6f, 1.0f);
+	juce::Colour medium = juce::Colour::fromHSV(HUE * 0.01f, 0.5f, 0.5f, 1.0f);
+	juce::Colour dark = juce::Colour::fromHSV(HUE * 0.01f, 0.5f, 0.4f, 1.0f);
 
 	getLookAndFeel().setColour(juce::Slider::thumbColourId, dark);
 	getLookAndFeel().setColour(juce::Slider::rotarySliderFillColourId, medium);
@@ -139,7 +139,7 @@ void CompressorAudioProcessorEditor::timerCallback()
 
 void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 {
-	g.fillAll(juce::Colour::fromHSV(0.8f, 0.5f, 0.7f, 1.0f));
+	g.fillAll(juce::Colour::fromHSV(HUE * 0.01f, 0.5f, 0.7f, 1.0f));
 }
 
 void CompressorAudioProcessorEditor::resized()
